@@ -1,8 +1,41 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ledger · Sales & Inventory</title><link rel="stylesheet" href="/static/style.css"><script src="/static/app.js" defer></script></head>
-<body>
-<aside><div class="brand">L<span>Ledger</span></div><p>SALES & INVENTORY</p><nav id="nav"></nav><div id="account"></div></aside>
-<main><header><div><small>YOUR BUSINESS, IN ORDER</small><h1 id="title">Welcome back</h1></div><span class="tag">Single-location inventory</span></header><div id="message" role="status" aria-live="polite"></div><section id="content"></section></main>
-<dialog id="dialog"><form id="editor"><h2 id="dialog-title"></h2><div id="fields"></div><p id="form-error" role="alert"></p><footer><button type="button" id="close-dialog" class="secondary">Close</button><button type="submit">Save</button></footer></form></dialog>
-</body></html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Ledger · Sales & Inventory</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <aside>
+      <div class="brand">L<span>Ledger</span></div>
+      <p>SALES & INVENTORY</p>
+      <nav id="nav"></nav>
+      <div id="account"></div>
+    </aside>
+    <main>
+      <header>
+        <div>
+          <small>YOUR BUSINESS, IN ORDER</small>
+          <h1 id="title">Welcome back</h1>
+        </div>
+        <span class="tag">Single-location inventory</span>
+      </header>
+      <div id="message" role="status" aria-live="polite"></div>
+      <section id="content"></section>
+    </main>
+    <dialog id="dialog">
+      <form id="editor">
+        <h2 id="dialog-title"></h2>
+        <div id="fields"></div>
+        <p id="form-error" role="alert"></p>
+        <footer>
+          <button type="button" id="close-dialog" class="secondary">
+            Close</button
+          ><button type="submit">Save</button>
+        </footer>
+      </form>
+    </dialog>
+  </body>
+</html>
