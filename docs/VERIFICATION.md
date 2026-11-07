@@ -21,3 +21,5 @@ A real Microsoft Edge browser completed login, product selection, dynamic item r
 The app runs locally using Flask's development server. Public deployment is optional in the assignment and is not configured. Currency is INR, with one stock location. The project uses a neutral Git author identity because the candidate's full name and preferred commit email were not provided. The submission archive name contains the FullName placeholder and must be renamed before submission.
 
 The demonstration is an automatically recorded, captioned browser walkthrough without voice narration. Demo activity remains in the local application database. The included seed command creates a clean sample dataset in a new database on another machine. Private local credentials, virtual environments and MySQL runtime files are excluded from the submission package.
+
+The final MP4 duration is 5 minutes 38 seconds. Three frames across the recording were visually inspected. The restarted final application also passed a mobile-width login and layout check at 390 pixels.
