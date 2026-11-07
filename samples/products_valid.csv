@@ -1,0 +1,3 @@
+product_code,product_name,category,price,stock_quantity,status
+IMP-001,USB Hub,Accessories,750.00,15,Active
+IMP-002,Desk Lamp,Office,1200.00,8,Active
