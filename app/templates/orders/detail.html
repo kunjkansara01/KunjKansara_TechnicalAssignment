@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}{{ order.order_number }} - Sales & Inventory{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Order {{ order.order_number }}</h1>
+    <div class="actions-bar">
+      {% if order.status == 'Draft' %}
+        <a class="btn btn-primary" id="edit-link" href="{{ url_for('orders.edit', order_id=order.id) }}">Edit</a>
+
+        {# action = normal HTML route (no-JS fallback); data-api-url = JSON route used by fetch(). #}
+        <form method="post" action="{{ url_for('orders.confirm', order_id=order.id) }}" class="inline-form"
+              data-action="confirm"
+              data-api-url="{{ url_for('api.confirm_order', order_id=order.id) }}"
+              data-confirm-text="Confirm {{ order.order_number }}? Stock will be deducted.">
+          <button type="submit" class="btn btn-success">Confirm</button>
+        </form>
+      {% endif %}
+
+      {% if order.status in ('Draft', 'Confirmed') %}
+        <form method="post" action="{{ url_for('orders.cancel', order_id=order.id) }}" class="inline-form"
+              data-action="cancel"
+              data-api-url="{{ url_for('api.cancel_order', order_id=order.id) }}"
+              data-confirm-text="Cancel {{ order.order_number }}?{% if order.status == 'Confirmed' %} Stock will be restored.{% endif %}">
+          <button type="submit" class="btn btn-danger-solid">Cancel order</button>
+        </form>
+      {% endif %}
+
+      <a class="btn btn-plain" href="{{ url_for('orders.index') }}">Back to orders</a>
+    </div>
+  </div>
+
+  {# JavaScript shows the confirm/cancel result here. #}
+  <div id="js-message" hidden></div>
+
+  <div class="card">
+    <div class="detail-grid">
+      <div><span class="label">Customer</span>{{ order.customer_name }}</div>
+      <div><span class="label">Order date</span>{{ order.order_date }}</div>
+      <div><span class="label">Status</span>
+        <span class="badge status-{{ order.status|lower }}" id="order-status">{{ order.status }}</span>
+      </div>
+      <div><span class="label">Created by</span>{{ order.created_by_name }}</div>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Code</th>
+        <th>Product</th>
+        <th class="num">Qty</th>
+        <th class="num">Rate</th>
+        <th class="num">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ item.product_code }}</td>
+          <td>{{ item.product_name }}</td>
+          <td class="num">{{ item.quantity }}</td>
+          <td class="num">{{ item.rate|money }}</td>
+          <td class="num">{{ item.amount|money }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="5" class="num">Subtotal</td>
+        <td class="num">{{ order.subtotal|money }}</td>
+      </tr>
+      <tr>
+        <td colspan="5" class="num">Discount ({{ order.discount_percentage }}%)</td>
+        <td class="num">- {{ order.discount_amount|money }}</td>
+      </tr>
+      <tr class="grand-total">
+        <td colspan="5" class="num">Grand total</td>
+        <td class="num">{{ order.grand_total|money }}</td>
+      </tr>
+    </tfoot>
+  </table>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/order_form.js') }}"></script>
+{% endblock %}

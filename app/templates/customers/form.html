@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'New' if mode == 'new' else 'Edit' }} customer - Sales & Inventory{% endblock %}
+
+{% block content %}
+  <div class="card card-narrow">
+    <h1>{{ 'New customer' if mode == 'new' else 'Edit customer' }}</h1>
+
+    {% if errors %}
+      <ul class="error-list">
+        {% for error in errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <form method="post">
+      <label for="name">Name *</label>
+      <input type="text" id="name" name="name" value="{{ customer.name or '' }}" maxlength="150" required>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" value="{{ customer.email or '' }}" maxlength="150">
+
+      <label for="mobile">Mobile</label>
+      <input type="text" id="mobile" name="mobile" value="{{ customer.mobile or '' }}" maxlength="15"
+             inputmode="numeric" placeholder="10 to 15 digits">
+
+      <label for="city">City</label>
+      <input type="text" id="city" name="city" value="{{ customer.city or '' }}" maxlength="100">
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{{ url_for('customers.index') }}" class="btn btn-plain">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

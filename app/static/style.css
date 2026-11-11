@@ -122,3 +122,315 @@ select {
   color: #fff;
   text-decoration: underline;
 }
+
+/* ---- list pages ---- */
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.page-header h1 {
+  margin: 0;
+}
+
+.page-header .btn {
+  margin-top: 0;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.filter-bar input[type="text"] {
+  flex: 1;
+  max-width: 360px;
+}
+
+.filter-bar select {
+  width: auto;
+}
+
+.filter-bar .btn {
+  margin-top: 0;
+}
+
+.btn-plain {
+  background: #fff;
+  border-color: #bbb;
+  color: #222;
+  text-decoration: none;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #ddd;
+}
+
+.data-table th,
+.data-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e5e5e5;
+  text-align: left;
+  font-size: 14px;
+}
+
+.data-table th {
+  background: #f0f3f7;
+}
+
+.data-table td.empty {
+  text-align: center;
+  color: #777;
+  padding: 24px;
+}
+
+.data-table td.actions a,
+.data-table td.actions .btn-text {
+  margin-right: 10px;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #1f3a5f;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-danger {
+  color: #b00020;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.badge-active {
+  background: #e6f7e6;
+  color: #1e6b1e;
+}
+
+.badge-inactive {
+  background: #eee;
+  color: #666;
+}
+
+/* ---- forms ---- */
+
+.error-list {
+  background: #fdecea;
+  border: 1px solid #e59a93;
+  border-radius: 4px;
+  padding: 10px 10px 10px 28px;
+  margin: 0 0 12px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ---- numbers and stock ---- */
+
+.data-table th.num,
+.data-table td.num {
+  text-align: right;
+}
+
+.data-table td.stock-zero {
+  color: #b00020;
+  font-weight: bold;
+}
+
+.data-table td.pos {
+  color: #1e6b1e;
+}
+
+.data-table td.neg {
+  color: #b00020;
+}
+
+.help-text {
+  color: #555;
+  font-size: 14px;
+  margin: 8px 0 12px;
+}
+
+/* ---- orders ---- */
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-row > div {
+  flex: 1;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.detail-grid .label {
+  display: block;
+  font-size: 12px;
+  color: #777;
+  text-transform: uppercase;
+}
+
+.data-table tfoot td {
+  font-weight: bold;
+  background: #fafafa;
+}
+
+.data-table tr.grand-total td {
+  font-size: 16px;
+  border-top: 2px solid #1f3a5f;
+}
+
+.data-table td input.qty {
+  width: 80px;
+  text-align: right;
+}
+
+.data-table td select {
+  width: 100%;
+  min-width: 220px;
+}
+
+.status-draft {
+  background: #fff4d6;
+  color: #7a5a00;
+}
+
+.status-confirmed {
+  background: #e6f7e6;
+  color: #1e6b1e;
+}
+
+.status-cancelled {
+  background: #eee;
+  color: #666;
+}
+
+h2 {
+  margin: 20px 0 8px;
+  font-size: 18px;
+}
+
+/* ---- order action buttons ---- */
+
+.actions-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.actions-bar .btn {
+  margin-top: 0;
+}
+
+.btn-success {
+  background: #1e6b1e;
+  color: #fff;
+}
+
+.btn-danger-solid {
+  background: #b00020;
+  color: #fff;
+}
+
+/* ---- inline validation ---- */
+
+.field-error {
+  display: block;
+  color: #b00020;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.data-table td .field-error {
+  white-space: nowrap;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---- reports ---- */
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.report-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.report-card:hover {
+  border-color: #1f3a5f;
+}
+
+.report-card h2 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  color: #1f3a5f;
+}
+
+.report-card p {
+  margin: 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.filter-bar .inline-label {
+  margin: 0;
+  font-weight: normal;
+}
+
+.filter-bar input[type="date"] {
+  width: auto;
+}
+
+.filter-bar input.short {
+  width: 90px;
+}
+
+.filter-bar.wrap {
+  flex-wrap: wrap;
+}
+
+/* ---- csv import ---- */
+
+code {
+  background: #f0f3f7;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+input[type="file"] {
+  display: block;
+  margin-top: 4px;
+}

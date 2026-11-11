@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Stock Movement History - Sales & Inventory{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Stock Movement History</h1>
+    <a class="btn btn-plain" href="{{ url_for('reports.index') }}">All reports</a>
+  </div>
+  <p class="help-text">Newest first, up to 500 rows. Positive = stock in, negative = stock out.</p>
+
+  {% if errors %}
+    <ul class="error-list">
+      {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="get" class="filter-bar wrap">
+    <select name="product_id">
+      <option value="">All products</option>
+      {% for p in products %}
+        <option value="{{ p.id }}" {% if args.get('product_id') == p.id|string %}selected{% endif %}>
+          {{ p.product_code }} - {{ p.name }}
+        </option>
+      {% endfor %}
+    </select>
+    <select name="movement_type">
+      <option value="">All types</option>
+      {% for t in movement_types %}
+        <option value="{{ t }}" {% if args.get('movement_type') == t %}selected{% endif %}>{{ t }}</option>
+      {% endfor %}
+    </select>
+    <label class="inline-label" for="date_from">From</label>
+    <input type="date" id="date_from" name="date_from" value="{{ args.get('date_from', '') }}">
+    <label class="inline-label" for="date_to">To</label>
+    <input type="date" id="date_to" name="date_to" value="{{ args.get('date_to', '') }}">
+    <button type="submit" class="btn">Apply</button>
+    {% if args %}
+      <a href="{{ url_for('reports.stock_movements') }}" class="btn btn-plain">Clear</a>
+    {% endif %}
+  </form>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>When</th>
+        <th>Code</th>
+        <th>Product</th>
+        <th>Type</th>
+        <th class="num">Change</th>
+        <th>Order</th>
+        <th>Reason</th>
+        <th>By</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in rows %}
+        <tr>
+          <td>{{ m.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td>{{ m.product_code }}</td>
+          <td>{{ m.product_name }}</td>
+          <td>{{ m.movement_type }}</td>
+          <td class="num {% if m.quantity_change < 0 %}neg{% else %}pos{% endif %}">{{ '%+d' % m.quantity_change }}</td>
+          <td>{{ m.order_number or '-' }}</td>
+          <td>{{ m.reason or '-' }}</td>
+          <td>{{ m.created_by_name }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="8" class="empty">No stock movements match.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

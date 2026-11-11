@@ -3,6 +3,38 @@
 {% block title %}Home - Sales & Inventory{% endblock %}
 
 {% block content %}
-  <h1>Sales Order &amp; Inventory Management</h1>
-  <p>The application skeleton is running. Use the navigation above to open each section.</p>
+  <h1>Welcome, {{ session.user_name }}</h1>
+  <p class="help-text">
+    You are signed in as <strong>{{ session.user_role }}</strong>.
+    {% if session.user_role == 'admin' %}
+      You can manage customers, products and stock, work with every order, and run reports.
+    {% else %}
+      You can view active customers and products and manage your own orders.
+    {% endif %}
+  </p>
+
+  <div class="report-grid">
+    <a class="card report-card" href="{{ url_for('orders.create') }}">
+      <h2>New order</h2>
+      <p>Pick a customer, add products, save as a draft, then confirm to deduct stock.</p>
+    </a>
+    <a class="card report-card" href="{{ url_for('orders.index') }}">
+      <h2>{{ 'All orders' if session.user_role == 'admin' else 'My orders' }}</h2>
+      <p>Search by order number or customer and filter by status.</p>
+    </a>
+    <a class="card report-card" href="{{ url_for('products.index') }}">
+      <h2>Products</h2>
+      <p>Prices, stock on hand and stock history.</p>
+    </a>
+    <a class="card report-card" href="{{ url_for('customers.index') }}">
+      <h2>Customers</h2>
+      <p>Active customers available for new orders.</p>
+    </a>
+    {% if session.user_role == 'admin' %}
+      <a class="card report-card" href="{{ url_for('reports.index') }}">
+        <h2>Reports</h2>
+        <p>Sales by customer and product, low stock, movement history.</p>
+      </a>
+    {% endif %}
+  </div>
 {% endblock %}

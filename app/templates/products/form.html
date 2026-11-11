@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'New' if mode == 'new' else 'Edit' }} product - Sales & Inventory{% endblock %}
+
+{% block content %}
+  <div class="card card-narrow">
+    <h1>{{ 'New product' if mode == 'new' else 'Edit product' }}</h1>
+
+    {% if errors %}
+      <ul class="error-list">
+        {% for error in errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <form method="post">
+      <label for="product_code">Product code *</label>
+      <input type="text" id="product_code" name="product_code" value="{{ product.product_code or '' }}"
+             maxlength="50" required>
+
+      <label for="name">Name *</label>
+      <input type="text" id="name" name="name" value="{{ product.name or '' }}" maxlength="150" required>
+
+      <label for="category">Category</label>
+      <input type="text" id="category" name="category" value="{{ product.category or '' }}" maxlength="100">
+
+      <label for="price">Price *</label>
+      <input type="text" id="price" name="price" value="{{ product.price if product.price is not none else '' }}" inputmode="decimal"
+             placeholder="0.00" required>
+
+      {% if mode == 'new' %}
+        <label for="stock_quantity">Opening stock</label>
+        <input type="text" id="stock_quantity" name="stock_quantity"
+               value="{{ product.stock_quantity if product.stock_quantity is not none else '0' }}" inputmode="numeric">
+      {% else %}
+        <label>Stock</label>
+        <p class="help-text">
+          {{ product.stock_quantity }} units.
+          Use <a href="{{ url_for('products.adjust_stock', product_id=product.id) }}">Adjust stock</a>
+          to change it so the change is recorded.
+        </p>
+      {% endif %}
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{{ url_for('products.index') }}" class="btn btn-plain">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

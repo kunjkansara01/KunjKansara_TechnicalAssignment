@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Customers - Sales & Inventory{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Customers</h1>
+    {% if is_admin %}
+      <a class="btn btn-primary" href="{{ url_for('customers.create') }}">New customer</a>
+    {% endif %}
+  </div>
+
+  <form method="get" action="{{ url_for('customers.index') }}" class="filter-bar">
+    <input type="text" name="q" value="{{ search }}" placeholder="Search name, email or mobile">
+
+    {% if is_admin %}
+      <select name="status">
+        <option value="active"   {% if status == 'active'   %}selected{% endif %}>Active</option>
+        <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+        <option value="all"      {% if status == 'all'      %}selected{% endif %}>All</option>
+      </select>
+    {% endif %}
+
+    <button type="submit" class="btn">Search</button>
+    {% if search or status != 'active' %}
+      <a href="{{ url_for('customers.index') }}" class="btn btn-plain">Clear</a>
+    {% endif %}
+  </form>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Mobile</th>
+        <th>City</th>
+        <th>Status</th>
+        {% if is_admin %}<th>Actions</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in customers %}
+        <tr>
+          <td>{{ c.name }}</td>
+          <td>{{ c.email or '-' }}</td>
+          <td>{{ c.mobile or '-' }}</td>
+          <td>{{ c.city or '-' }}</td>
+          <td>
+            {% if c.is_active %}
+              <span class="badge badge-active">Active</span>
+            {% else %}
+              <span class="badge badge-inactive">Inactive</span>
+            {% endif %}
+          </td>
+          {% if is_admin %}
+            <td class="actions">
+              <a href="{{ url_for('customers.edit', customer_id=c.id) }}">Edit</a>
+
+              {% if c.is_active %}
+                <form method="post" action="{{ url_for('customers.deactivate', customer_id=c.id) }}" class="inline-form">
+                  <input type="hidden" name="status" value="{{ status }}">
+                  <button type="submit" class="btn-text">Deactivate</button>
+                </form>
+              {% else %}
+                <form method="post" action="{{ url_for('customers.activate', customer_id=c.id) }}" class="inline-form">
+                  <input type="hidden" name="status" value="{{ status }}">
+                  <button type="submit" class="btn-text">Activate</button>
+                </form>
+              {% endif %}
+
+              <form method="post" action="{{ url_for('customers.delete', customer_id=c.id) }}" class="inline-form"
+                    onsubmit="return confirm('Delete {{ c.name|e }}? This cannot be undone.');">
+                <input type="hidden" name="status" value="{{ status }}">
+                <button type="submit" class="btn-text btn-danger">Delete</button>
+              </form>
+            </td>
+          {% endif %}
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="{{ 6 if is_admin else 5 }}" class="empty">No customers found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

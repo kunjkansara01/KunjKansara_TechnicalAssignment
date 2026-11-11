@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Sales Summary - Sales & Inventory{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Customer Sales Summary</h1>
+    <a class="btn btn-plain" href="{{ url_for('reports.index') }}">All reports</a>
+  </div>
+  <p class="help-text">Confirmed orders only. Customers with no Confirmed orders in the range are listed with zeros.</p>
+
+  {% include "reports/_date_filter.html" %}
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Customer</th>
+        <th>City</th>
+        <th>Status</th>
+        <th class="num">Confirmed orders</th>
+        <th class="num">Total sales</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+        <tr>
+          <td>{{ r.name }}</td>
+          <td>{{ r.city or '-' }}</td>
+          <td>
+            {% if r.is_active %}<span class="badge badge-active">Active</span>
+            {% else %}<span class="badge badge-inactive">Inactive</span>{% endif %}
+          </td>
+          <td class="num">{{ r.order_count }}</td>
+          <td class="num">{{ r.total_sales|money }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="empty">No customers.</td></tr>
+      {% endfor %}
+    </tbody>
+    {% if rows %}
+      <tfoot>
+        <tr>
+          <td colspan="3" class="num">Total</td>
+          <td class="num">{{ total_orders }}</td>
+          <td class="num">{{ total_sales|money }}</td>
+        </tr>
+      </tfoot>
+    {% endif %}
+  </table>
+{% endblock %}

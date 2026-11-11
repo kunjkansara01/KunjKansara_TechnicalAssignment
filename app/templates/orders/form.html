@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'New order' if mode == 'new' else 'Edit ' ~ order.order_number }} - Sales & Inventory{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>{{ 'New order' if mode == 'new' else 'Edit order ' ~ order.order_number }}</h1>
+  </div>
+
+  {# Server-side validation errors (always authoritative). #}
+  {% if errors %}
+    <ul class="error-list">
+      {% for error in errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {# JavaScript writes client-side messages here. Hidden until needed. #}
+  <div id="js-message" hidden></div>
+
+  {% set f_customer = form.customer_id if form else '' %}
+  {% set f_date = form.order_date if form else '' %}
+  {% set f_discount = form.discount_percentage if form else '0' %}
+
+  <form method="post" id="order-form" novalidate>
+    <div class="card">
+      <div class="form-row">
+        <div>
+          <label for="customer_id">Customer *</label>
+          <select id="customer_id" name="customer_id">
+            <option value="">Choose a customer</option>
+            {% for c in customers %}
+              <option value="{{ c.id }}" {% if f_customer == c.id|string %}selected{% endif %}>
+                {{ c.name }}{% if c.city %} ({{ c.city }}){% endif %}
+              </option>
+            {% endfor %}
+          </select>
+          <span class="field-error" data-error-for="customer_id" hidden></span>
+        </div>
+        <div>
+          <label for="order_date">Order date</label>
+          <input type="date" id="order_date" name="order_date" value="{{ f_date }}">
+        </div>
+        <div>
+          <label for="discount_percentage">Discount % (0 to 20)</label>
+          <input type="text" id="discount_percentage" name="discount_percentage"
+                 value="{{ f_discount }}" inputmode="decimal">
+          <span class="field-error" data-error-for="discount_percentage" hidden></span>
+        </div>
+      </div>
+    </div>
+
+    <h2>Items</h2>
+    <table class="data-table" id="items-table">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th class="num">In stock</th>
+          <th class="num">Rate</th>
+          <th class="num">Qty</th>
+          <th class="num">Amount</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="items-body">
+        {# No-JS fallback row: lets the form submit when scripts are disabled. #}
+        <noscript>
+          <tr>
+            <td>
+              <select name="product_id">
+                <option value="">Choose a product</option>
+                {% for p in products %}
+                  <option value="{{ p.id }}">{{ p.product_code }} - {{ p.name }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td></td><td></td>
+            <td><input type="text" name="quantity" inputmode="numeric"></td>
+            <td></td><td></td>
+          </tr>
+        </noscript>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4" class="num">Subtotal</td>
+          <td class="num" id="preview-subtotal">0.00</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td colspan="4" class="num">Discount</td>
+          <td class="num" id="preview-discount">0.00</td>
+          <td></td>
+        </tr>
+        <tr class="grand-total">
+          <td colspan="4" class="num">Grand total (preview)</td>
+          <td class="num" id="preview-total">0.00</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+    <p class="help-text">
+      Totals shown here are a preview only. The server recalculates everything
+      from the current product prices when you save.
+    </p>
+
+    <button type="button" class="btn btn-plain" id="add-item">Add item</button>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">{{ 'Save draft' if mode == 'new' else 'Save changes' }}</button>
+      <a href="{{ url_for('orders.detail', order_id=order.id) if order else url_for('orders.index') }}" class="btn btn-plain">Cancel</a>
+    </div>
+  </form>
+
+  {# Product names and pre-fill rows for the JS; price and stock come from /api/products/<id>. #}
+  <script id="products-data" type="application/json">{{ products_json|safe }}</script>
+  <script id="rows-data" type="application/json">{{ rows_json|safe }}</script>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/order_form.js') }}"></script>
+{% endblock %}

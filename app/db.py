@@ -1,9 +1,4 @@
-"""Database connection helpers using mysql-connector-python.
-
-One connection is opened per request (the first time get_db() is called) and
-closed automatically when the request ends. We use plain SQL so every query is
-easy to read and explain.
-"""
+"""One MySQL connection per request, closed automatically when the request ends."""
 
 import mysql.connector
 from flask import current_app, g

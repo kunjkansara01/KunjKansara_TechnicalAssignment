@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Product Sales Summary - Sales & Inventory{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Product Sales Summary</h1>
+    <a class="btn btn-plain" href="{{ url_for('reports.index') }}">All reports</a>
+  </div>
+  <p class="help-text">
+    Confirmed orders only. Gross value is quantity x rate per line, before the order-level discount.
+  </p>
+
+  {% include "reports/_date_filter.html" %}
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Product</th>
+        <th>Category</th>
+        <th class="num">Qty sold</th>
+        <th class="num">Gross value</th>
+        <th class="num">In stock now</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+        <tr>
+          <td>{{ r.product_code }}</td>
+          <td>{{ r.name }}{% if not r.is_active %} <span class="badge badge-inactive">Inactive</span>{% endif %}</td>
+          <td>{{ r.category or '-' }}</td>
+          <td class="num">{{ r.qty_sold }}</td>
+          <td class="num">{{ r.gross_value|money }}</td>
+          <td class="num">{{ r.stock_quantity }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="empty">No products.</td></tr>
+      {% endfor %}
+    </tbody>
+    {% if rows %}
+      <tfoot>
+        <tr>
+          <td colspan="3" class="num">Total</td>
+          <td class="num">{{ total_qty }}</td>
+          <td class="num">{{ total_value|money }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    {% endif %}
+  </table>
+{% endblock %}

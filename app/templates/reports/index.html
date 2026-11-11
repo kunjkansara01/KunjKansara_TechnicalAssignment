@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - Sales & Inventory{% endblock %}
+
+{% block content %}
+  <h1>Reports</h1>
+
+  <div class="report-grid">
+    <a class="card report-card" href="{{ url_for('reports.customer_sales') }}">
+      <h2>Customer Sales Summary</h2>
+      <p>Confirmed orders and sales per customer in a date range. Customers with no sales are included.</p>
+    </a>
+    <a class="card report-card" href="{{ url_for('reports.product_sales') }}">
+      <h2>Product Sales Summary</h2>
+      <p>Quantity sold and gross item value (before discount) per product from Confirmed orders.</p>
+    </a>
+    <a class="card report-card" href="{{ url_for('reports.low_stock') }}">
+      <h2>Low Stock</h2>
+      <p>Active products at or below a stock threshold you choose.</p>
+    </a>
+    <a class="card report-card" href="{{ url_for('reports.stock_movements') }}">
+      <h2>Stock Movement History</h2>
+      <p>Every stock change with its type, order, reason and who made it.</p>
+    </a>
+  </div>
+{% endblock %}

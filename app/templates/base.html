@@ -10,13 +10,14 @@
   <header class="topbar">
     <a class="brand" href="{{ url_for('main.home') }}">Sales &amp; Inventory</a>
 
-    {# session is available in every template. Links show only after login. #}
     {% if session.user_id %}
       <nav>
         <a href="{{ url_for('customers.index') }}">Customers</a>
         <a href="{{ url_for('products.index') }}">Products</a>
         <a href="{{ url_for('orders.index') }}">Orders</a>
-        <a href="{{ url_for('reports.index') }}">Reports</a>
+        {% if session.user_role == 'admin' %}
+          <a href="{{ url_for('reports.index') }}">Reports</a>
+        {% endif %}
       </nav>
       <div class="userbox">
         <span>{{ session.user_name }} <small>({{ session.user_role }})</small></span>
@@ -32,7 +33,6 @@
   </header>
 
   <main class="container">
-    {# Flash messages are set in routes with flash("text", "category") #}
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
         <div class="flash flash-{{ category }}">{{ message }}</div>
@@ -42,6 +42,6 @@
     {% block content %}{% endblock %}
   </main>
 
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
+  {% block scripts %}{% endblock %}
 </body>
 </html>

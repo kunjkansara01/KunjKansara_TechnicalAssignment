@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Products - Sales & Inventory{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Products</h1>
+    {% if is_admin %}
+      <div class="actions-bar">
+        <a class="btn btn-plain" href="{{ url_for('products.import_csv') }}">Import CSV</a>
+        <a class="btn btn-primary" href="{{ url_for('products.create') }}">New product</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <form method="get" action="{{ url_for('products.index') }}" class="filter-bar">
+    <input type="text" name="q" value="{{ search }}" placeholder="Search code or name">
+
+    <select name="category">
+      <option value="">All categories</option>
+      {% for c in categories %}
+        <option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+
+    {% if is_admin %}
+      <select name="status">
+        <option value="active"   {% if status == 'active'   %}selected{% endif %}>Active</option>
+        <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+        <option value="all"      {% if status == 'all'      %}selected{% endif %}>All</option>
+      </select>
+    {% endif %}
+
+    <button type="submit" class="btn">Search</button>
+    {% if search or category or status != 'active' %}
+      <a href="{{ url_for('products.index') }}" class="btn btn-plain">Clear</a>
+    {% endif %}
+  </form>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th class="num">Price</th>
+        <th class="num">Stock</th>
+        <th>Status</th>
+        <th>{{ 'Actions' if is_admin else '' }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in products %}
+        <tr>
+          <td>{{ p.product_code }}</td>
+          <td>{{ p.name }}</td>
+          <td>{{ p.category or '-' }}</td>
+          <td class="num">{{ p.price|money }}</td>
+          <td class="num {% if p.stock_quantity == 0 %}stock-zero{% endif %}">{{ p.stock_quantity }}</td>
+          <td>
+            {% if p.is_active %}
+              <span class="badge badge-active">Active</span>
+            {% else %}
+              <span class="badge badge-inactive">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="actions">
+            <a href="{{ url_for('products.movements', product_id=p.id) }}">History</a>
+
+            {% if is_admin %}
+              <a href="{{ url_for('products.adjust_stock', product_id=p.id) }}">Adjust stock</a>
+              <a href="{{ url_for('products.edit', product_id=p.id) }}">Edit</a>
+
+              {% if p.is_active %}
+                <form method="post" action="{{ url_for('products.deactivate', product_id=p.id) }}" class="inline-form">
+                  <input type="hidden" name="q" value="{{ search }}">
+                  <input type="hidden" name="category_filter" value="{{ category }}">
+                  <input type="hidden" name="status" value="{{ status }}">
+                  <button type="submit" class="btn-text">Deactivate</button>
+                </form>
+              {% else %}
+                <form method="post" action="{{ url_for('products.activate', product_id=p.id) }}" class="inline-form">
+                  <input type="hidden" name="q" value="{{ search }}">
+                  <input type="hidden" name="category_filter" value="{{ category }}">
+                  <input type="hidden" name="status" value="{{ status }}">
+                  <button type="submit" class="btn-text">Activate</button>
+                </form>
+              {% endif %}
+
+              <form method="post" action="{{ url_for('products.delete', product_id=p.id) }}" class="inline-form"
+                    onsubmit="return confirm('Delete {{ p.name|e }}? This cannot be undone.');">
+                <input type="hidden" name="q" value="{{ search }}">
+                <input type="hidden" name="category_filter" value="{{ category }}">
+                <input type="hidden" name="status" value="{{ status }}">
+                <button type="submit" class="btn-text btn-danger">Delete</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="7" class="empty">No products found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

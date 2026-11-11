@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Stock history - Sales & Inventory{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Stock history: {{ product.product_code }} {{ product.name }}</h1>
+    {% if is_admin %}
+      <a class="btn btn-primary" href="{{ url_for('products.adjust_stock', product_id=product.id) }}">Adjust stock</a>
+    {% endif %}
+  </div>
+
+  <p class="help-text">Current stock: <strong>{{ product.stock_quantity }}</strong></p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>When</th>
+        <th>Type</th>
+        <th class="num">Change</th>
+        <th>Order</th>
+        <th>Reason</th>
+        <th>By</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in movements %}
+        <tr>
+          <td>{{ m.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td>{{ m.movement_type }}</td>
+          <td class="num {% if m.quantity_change < 0 %}neg{% else %}pos{% endif %}">
+            {{ '%+d' % m.quantity_change }}
+          </td>
+          <td>{{ m.sales_order_id or '-' }}</td>
+          <td>{{ m.reason or '-' }}</td>
+          <td>{{ m.created_by_name }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="empty">No stock movements yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p><a href="{{ url_for('products.index') }}">Back to products</a></p>
+{% endblock %}

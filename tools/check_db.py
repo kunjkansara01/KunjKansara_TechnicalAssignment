@@ -44,8 +44,8 @@ def main():
         elif error.errno == 1049:
             print("Meaning: the database does not exist. Run sql/setup_database.sql.")
         elif error.errno == 2003:
-            print("Meaning: nothing is listening on that host/port. Start the")
-            print("MySQL84 service: net start MySQL84 (admin PowerShell).")
+            print("Meaning: nothing is listening on that host/port. Start the MySQL")
+            print("Windows service (e.g. net start MySQL84 in an admin PowerShell).")
         return 1
 
     cursor = connection.cursor()

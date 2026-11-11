@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Low Stock - Sales & Inventory{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Low Stock</h1>
+    <a class="btn btn-plain" href="{{ url_for('reports.index') }}">All reports</a>
+  </div>
+  <p class="help-text">Active products with stock at or below the threshold.</p>
+
+  {% if errors %}
+    <ul class="error-list">
+      {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="get" class="filter-bar">
+    <label class="inline-label" for="threshold">Threshold</label>
+    <input type="text" id="threshold" name="threshold" value="{{ threshold }}" inputmode="numeric" class="short">
+    <button type="submit" class="btn">Apply</button>
+  </form>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Product</th>
+        <th>Category</th>
+        <th class="num">Price</th>
+        <th class="num">In stock</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+        <tr>
+          <td>{{ r.product_code }}</td>
+          <td>{{ r.name }}</td>
+          <td>{{ r.category or '-' }}</td>
+          <td class="num">{{ r.price|money }}</td>
+          <td class="num {% if r.stock_quantity == 0 %}stock-zero{% endif %}">{{ r.stock_quantity }}</td>
+          <td><a href="{{ url_for('products.adjust_stock', product_id=r.id) }}">Adjust stock</a></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="empty">No active products at or below {{ threshold }}.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

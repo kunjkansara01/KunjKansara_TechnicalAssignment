@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Orders - Sales & Inventory{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>{{ 'All orders' if is_admin else 'My orders' }}</h1>
+    <a class="btn btn-primary" href="{{ url_for('orders.create') }}">New order</a>
+  </div>
+
+  <form method="get" action="{{ url_for('orders.index') }}" class="filter-bar">
+    <input type="text" name="q" value="{{ search }}" placeholder="Search order number or customer">
+    <select name="status">
+      <option value="">All statuses</option>
+      {% for s in statuses %}
+        <option value="{{ s }}" {% if s == status %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn">Search</button>
+    {% if search or status %}
+      <a href="{{ url_for('orders.index') }}" class="btn btn-plain">Clear</a>
+    {% endif %}
+  </form>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Order #</th>
+        <th>Date</th>
+        <th>Customer</th>
+        <th>Status</th>
+        <th class="num">Grand total</th>
+        {% if is_admin %}<th>Created by</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in orders %}
+        <tr>
+          <td><a href="{{ url_for('orders.detail', order_id=o.id) }}">{{ o.order_number }}</a></td>
+          <td>{{ o.order_date }}</td>
+          <td>{{ o.customer_name }}</td>
+          <td><span class="badge status-{{ o.status|lower }}">{{ o.status }}</span></td>
+          <td class="num">{{ o.grand_total|money }}</td>
+          {% if is_admin %}<td>{{ o.created_by_name }}</td>{% endif %}
+        </tr>
+      {% else %}
+        <tr><td colspan="{{ 6 if is_admin else 5 }}" class="empty">No orders found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
