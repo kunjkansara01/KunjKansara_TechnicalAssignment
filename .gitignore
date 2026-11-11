@@ -1,11 +1,13 @@
+# Virtual environment
+venv/
 .venv/
-__pycache__/
-.pytest_cache/
-.env
-*.db
-*.log
-instance/
 
-.local/
-demo/*.webm
-submission/
+# Secrets
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# pytest
+.pytest_cache/

@@ -1,116 +1,187 @@
--- MySQL 8.4 schema. Run inside the sales_inventory database.
+-- =============================================================================
+-- Sales Order & Inventory Management - database schema (MySQL 8)
+--
+-- Run against the empty database:
+--   Git Bash / cmd : mysql -u sales_app -p sales_inventory < sql/schema.sql
+--   PowerShell     : mysql -u sales_app -p sales_inventory -e "source sql/schema.sql"
+--
+-- Conventions
+--   * Every table uses InnoDB so foreign keys and transactions work.
+--   * Money columns are DECIMAL, never FLOAT, so totals are exact.
+--   * Foreign keys use ON DELETE RESTRICT: a row that is still referenced
+--     (a customer with orders, a product on an order) cannot be deleted.
+-- =============================================================================
 
-CREATE TABLE customers (
-	id INTEGER NOT NULL AUTO_INCREMENT, 
-	name VARCHAR(120) NOT NULL, 
-	email VARCHAR(254) NOT NULL, 
-	mobile VARCHAR(30) NOT NULL, 
-	city VARCHAR(100) NOT NULL, 
-	status VARCHAR(10) NOT NULL, 
-	PRIMARY KEY (id), 
-	CHECK (status IN ('Active', 'Inactive'))
-) ENGINE=InnoDB;
+-- Drop in reverse dependency order so the script can be re-run during
+-- development. Child tables go first because they hold the foreign keys.
+DROP TABLE IF EXISTS stock_movements;
+DROP TABLE IF EXISTS sales_order_items;
+DROP TABLE IF EXISTS sales_orders;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS users;
 
-CREATE TABLE products (
-	id INTEGER NOT NULL AUTO_INCREMENT, 
-	product_code VARCHAR(50) NOT NULL, 
-	name VARCHAR(120) NOT NULL, 
-	category VARCHAR(100) NOT NULL, 
-	price NUMERIC(14, 2) NOT NULL, 
-	stock_quantity INTEGER NOT NULL, 
-	status VARCHAR(10) NOT NULL, 
-	PRIMARY KEY (id), 
-	CHECK (price >= 0), 
-	CHECK (stock_quantity >= 0), 
-	CHECK (status IN ('Active', 'Inactive')), 
-	UNIQUE (product_code)
-) ENGINE=InnoDB;
 
+-- -----------------------------------------------------------------------------
+-- users: people who can log in. role decides what they may do.
+-- -----------------------------------------------------------------------------
 CREATE TABLE users (
-	id INTEGER NOT NULL AUTO_INCREMENT, 
-	name VARCHAR(120) NOT NULL, 
-	email VARCHAR(254) NOT NULL, 
-	password_hash VARCHAR(255) NOT NULL, 
-	`role` VARCHAR(10) NOT NULL, 
-	PRIMARY KEY (id), 
-	CHECK (role IN ('Admin', 'Sales')), 
-	UNIQUE (email)
-) ENGINE=InnoDB;
+    id            INT           NOT NULL AUTO_INCREMENT,
+    name          VARCHAR(100)  NOT NULL,
+    email         VARCHAR(150)  NOT NULL,
+    password_hash VARCHAR(255)  NOT NULL,           -- bcrypt hash, never plaintext
+    role          ENUM('admin', 'sales') NOT NULL DEFAULT 'sales',
+    created_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_users_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------------------------------
+-- customers: who we sell to. Inactive customers stay for history but cannot
+-- be picked on new orders.
+-- -----------------------------------------------------------------------------
+CREATE TABLE customers (
+    id         INT          NOT NULL AUTO_INCREMENT,
+    name       VARCHAR(150) NOT NULL,
+    email      VARCHAR(150) NULL,
+    mobile     VARCHAR(20)  NULL,
+    city       VARCHAR(100) NULL,
+    is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+    INDEX idx_customers_name (name),
+    INDEX idx_customers_is_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------------------------------
+-- products: what we sell. stock_quantity is the current on-hand count and is
+-- only changed by the backend together with a stock_movements row.
+-- -----------------------------------------------------------------------------
+CREATE TABLE products (
+    id             INT           NOT NULL AUTO_INCREMENT,
+    product_code   VARCHAR(50)   NOT NULL,
+    name           VARCHAR(150)  NOT NULL,
+    category       VARCHAR(100)  NULL,
+    price          DECIMAL(10,2) NOT NULL,
+    stock_quantity INT           NOT NULL DEFAULT 0,
+    is_active      BOOLEAN       NOT NULL DEFAULT TRUE,
+    created_at     TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_products_code (product_code),
+    INDEX idx_products_category (category),
+    CONSTRAINT chk_products_price_non_negative CHECK (price >= 0),
+    CONSTRAINT chk_products_stock_non_negative CHECK (stock_quantity >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------------------------------
+-- sales_orders: one row per order header. Totals are stored so reports do not
+-- have to recompute them; the backend writes them from the line items.
+-- -----------------------------------------------------------------------------
 CREATE TABLE sales_orders (
-	id INTEGER NOT NULL AUTO_INCREMENT, 
-	order_number VARCHAR(40) NOT NULL, 
-	customer_id INTEGER NOT NULL, 
-	order_date DATE NOT NULL, 
-	status VARCHAR(12) NOT NULL, 
-	discount_percentage NUMERIC(5, 2) NOT NULL, 
-	subtotal NUMERIC(16, 2) NOT NULL, 
-	discount_amount NUMERIC(16, 2) NOT NULL, 
-	grand_total NUMERIC(16, 2) NOT NULL, 
-	created_by INTEGER NOT NULL, 
-	PRIMARY KEY (id), 
-	CHECK (discount_percentage BETWEEN 0 AND 20), 
-	CHECK (status IN ('Draft', 'Confirmed', 'Cancelled')), 
-	UNIQUE (order_number), 
-	FOREIGN KEY(customer_id) REFERENCES customers (id), 
-	FOREIGN KEY(created_by) REFERENCES users (id)
-) ENGINE=InnoDB;
+    id                  INT           NOT NULL AUTO_INCREMENT,
+    order_number        VARCHAR(30)   NOT NULL,
+    customer_id         INT           NOT NULL,
+    order_date          DATE          NOT NULL,
+    status              ENUM('Draft', 'Confirmed', 'Cancelled') NOT NULL DEFAULT 'Draft',
+    discount_percentage DECIMAL(5,2)  NOT NULL DEFAULT 0.00,
+    subtotal            DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    discount_amount     DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    grand_total         DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    created_by          INT           NOT NULL,
+    created_at          TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                      ON UPDATE CURRENT_TIMESTAMP,
 
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sales_orders_number (order_number),
+    INDEX idx_sales_orders_status (status),
+    INDEX idx_sales_orders_date (order_date),
+    INDEX idx_sales_orders_customer (customer_id),
+    INDEX idx_sales_orders_created_by (created_by),
+
+    CONSTRAINT chk_sales_orders_discount_range
+        CHECK (discount_percentage >= 0 AND discount_percentage <= 100),
+
+    -- A customer with orders cannot be deleted (RESTRICT).
+    CONSTRAINT fk_sales_orders_customer
+        FOREIGN KEY (customer_id) REFERENCES customers (id)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+
+    -- The user who created the order must keep existing (RESTRICT).
+    CONSTRAINT fk_sales_orders_created_by
+        FOREIGN KEY (created_by) REFERENCES users (id)
+        ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------------------------------
+-- sales_order_items: one row per product line on an order.
+-- rate is the price at the time of ordering, copied from products so later
+-- price changes do not alter old orders. amount = quantity * rate.
+-- -----------------------------------------------------------------------------
 CREATE TABLE sales_order_items (
-	id INTEGER NOT NULL AUTO_INCREMENT, 
-	order_id INTEGER NOT NULL, 
-	product_id INTEGER NOT NULL, 
-	quantity INTEGER NOT NULL, 
-	rate NUMERIC(14, 2) NOT NULL, 
-	amount NUMERIC(16, 2) NOT NULL, 
-	PRIMARY KEY (id), 
-	UNIQUE (order_id, product_id), 
-	CHECK (quantity > 0), 
-	CHECK (rate >= 0), 
-	CHECK (amount >= 0), 
-	FOREIGN KEY(order_id) REFERENCES sales_orders (id), 
-	FOREIGN KEY(product_id) REFERENCES products (id)
-) ENGINE=InnoDB;
+    id             INT           NOT NULL AUTO_INCREMENT,
+    sales_order_id INT           NOT NULL,
+    product_id     INT           NOT NULL,
+    quantity       INT           NOT NULL,
+    rate           DECIMAL(10,2) NOT NULL,
+    amount         DECIMAL(12,2) NOT NULL,
 
+    PRIMARY KEY (id),
+    -- The same product may appear only once per order.
+    UNIQUE KEY uq_order_items_order_product (sales_order_id, product_id),
+    INDEX idx_order_items_product (product_id),
+
+    CONSTRAINT chk_order_items_quantity_positive CHECK (quantity > 0),
+
+    -- Lines belong to their order: deleting a (draft) order removes its lines.
+    CONSTRAINT fk_order_items_order
+        FOREIGN KEY (sales_order_id) REFERENCES sales_orders (id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    -- A product on any order cannot be deleted (RESTRICT).
+    CONSTRAINT fk_order_items_product
+        FOREIGN KEY (product_id) REFERENCES products (id)
+        ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------------------------------
+-- stock_movements: audit trail of every change to products.stock_quantity.
+-- quantity_change is positive for stock in, negative for stock out.
+-- sales_order_id is filled only for order_confirm / order_cancel rows.
+-- -----------------------------------------------------------------------------
 CREATE TABLE stock_movements (
-	id INTEGER NOT NULL AUTO_INCREMENT, 
-	product_id INTEGER NOT NULL, 
-	movement_type VARCHAR(20) NOT NULL, 
-	quantity_change INTEGER NOT NULL, 
-	order_id INTEGER, 
-	reason VARCHAR(255) NOT NULL, 
-	created_by INTEGER NOT NULL, 
-	timestamp DATETIME NOT NULL, 
-	PRIMARY KEY (id), 
-	FOREIGN KEY(product_id) REFERENCES products (id), 
-	FOREIGN KEY(order_id) REFERENCES sales_orders (id), 
-	FOREIGN KEY(created_by) REFERENCES users (id)
-) ENGINE=InnoDB;
+    id              INT          NOT NULL AUTO_INCREMENT,
+    product_id      INT          NOT NULL,
+    movement_type   ENUM('opening', 'order_confirm', 'order_cancel', 'adjustment') NOT NULL,
+    quantity_change INT          NOT NULL,
+    sales_order_id  INT          NULL,
+    reason          VARCHAR(255) NULL,
+    created_by      INT          NOT NULL,
+    created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-CREATE INDEX ix_customers_status ON customers (status);
+    PRIMARY KEY (id),
+    INDEX idx_stock_movements_product (product_id),
+    INDEX idx_stock_movements_order (sales_order_id),
+    INDEX idx_stock_movements_created_at (created_at),
 
-CREATE INDEX ix_customers_name ON customers (name);
+    CONSTRAINT fk_stock_movements_product
+        FOREIGN KEY (product_id) REFERENCES products (id)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
 
-CREATE INDEX ix_products_name ON products (name);
+    -- Keep the audit trail: an order with stock movements cannot be deleted.
+    CONSTRAINT fk_stock_movements_order
+        FOREIGN KEY (sales_order_id) REFERENCES sales_orders (id)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
 
-CREATE INDEX ix_products_category ON products (category);
-
-CREATE INDEX ix_products_status ON products (status);
-
-CREATE INDEX ix_sales_orders_customer_id ON sales_orders (customer_id);
-
-CREATE INDEX ix_sales_orders_created_by ON sales_orders (created_by);
-
-CREATE INDEX ix_sales_orders_status ON sales_orders (status);
-
-CREATE INDEX ix_sales_orders_order_date ON sales_orders (order_date);
-
-CREATE INDEX ix_sales_order_items_product_id ON sales_order_items (product_id);
-
-CREATE INDEX ix_sales_order_items_order_id ON sales_order_items (order_id);
-
-CREATE INDEX ix_stock_movements_product_id ON stock_movements (product_id);
-
-CREATE INDEX ix_stock_movements_order_id ON stock_movements (order_id);
-
-CREATE INDEX ix_stock_movements_timestamp ON stock_movements (timestamp);
+    CONSTRAINT fk_stock_movements_created_by
+        FOREIGN KEY (created_by) REFERENCES users (id)
+        ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
