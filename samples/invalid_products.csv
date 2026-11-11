@@ -1,0 +1,10 @@
+product_code,product_name,category,price,stock_quantity,status
+SP-540,Duplicate of an existing panel,Solar Panels,12500,10,Active
+,Missing product code,Accessories,100,5,Active
+NEW-001,Price is not a number,Accessories,abc,5,Active
+NEW-002,Negative stock,Accessories,100,-3,Active
+NEW-003,Unknown status value,Accessories,100,5,Pending
+NEW-004,First copy of a repeated code,Accessories,100,5,Active
+NEW-004,Second copy of the same code,Accessories,120,2,Active
+NEW-005,Row with too few columns,Accessories,100
+NEW-006,Negative price,Accessories,-50,5,Inactive

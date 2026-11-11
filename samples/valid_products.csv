@@ -1,0 +1,6 @@
+product_code,product_name,category,price,stock_quantity,status
+SP-600,Solar Panel 600W Bifacial,Solar Panels,14250.00,40,Active
+INV-3K,String Inverter 3kW,Inverters,28500,12,Active
+BAT-200,Lithium Battery 200Ah,Batteries,82000.50,0,Active
+CBL-6MM,DC Solar Cable 6mm (100m roll),Accessories,4100,35,Active
+STR-AL,Aluminium Mounting Structure (per kW),Structures,5200.75,8,Inactive
