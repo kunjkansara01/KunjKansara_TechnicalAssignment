@@ -3,9 +3,7 @@
 from tests.conftest import login
 
 
-# ---------------------------------------------------------------------------
-# Not logged in
-# ---------------------------------------------------------------------------
+# ---- Not logged in ----
 
 def test_web_page_redirects_to_login_when_logged_out(client):
     response = client.get("/customers/")
@@ -22,7 +20,7 @@ def test_home_redirects_to_login_when_logged_out(client):
 def test_api_returns_401_json_when_logged_out(client):
     response = client.get("/api/ping")
     assert response.status_code == 401
-    assert response.get_json() == {"error": "Authentication required"}
+    assert response.get_json() == {"ok": False, "message": "Authentication required"}
 
 
 def test_login_page_loads(client):
@@ -31,16 +29,13 @@ def test_login_page_loads(client):
     assert b"Log in" in response.data
 
 
-# ---------------------------------------------------------------------------
-# Logging in
-# ---------------------------------------------------------------------------
+# ---- Logging in ----
 
 def test_login_with_correct_password_redirects_home(client):
     response = login(client, "admin@example.com", "Admin@123")
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/")
 
-    # The session now lets us reach a protected page.
     response = client.get("/")
     assert response.status_code == 200
     assert b"Admin User" in response.data
@@ -65,9 +60,7 @@ def test_login_email_is_case_insensitive(client):
     assert response.status_code == 302
 
 
-# ---------------------------------------------------------------------------
-# Logging out
-# ---------------------------------------------------------------------------
+# ---- Logging out ----
 
 def test_logout_clears_session(admin_client):
     response = admin_client.post("/auth/logout")
@@ -83,9 +76,7 @@ def test_logout_requires_post(admin_client):
     assert response.status_code == 405
 
 
-# ---------------------------------------------------------------------------
-# Role checks
-# ---------------------------------------------------------------------------
+# ---- Role checks ----
 
 def test_api_me_returns_logged_in_user(sales_client):
     response = sales_client.get("/api/me")
@@ -106,7 +97,7 @@ def test_admin_route_allows_admin(admin_client):
 def test_admin_route_returns_403_json_for_sales_user(sales_client):
     response = sales_client.get("/api/admin/ping")
     assert response.status_code == 403
-    assert response.get_json() == {"error": "Admin access required"}
+    assert response.get_json() == {"ok": False, "message": "Admin access required"}
 
 
 def test_admin_route_returns_401_json_when_logged_out(client):
@@ -114,9 +105,7 @@ def test_admin_route_returns_401_json_when_logged_out(client):
     assert response.status_code == 401
 
 
-# ---------------------------------------------------------------------------
-# Error pages
-# ---------------------------------------------------------------------------
+# ---- Error pages ----
 
 def test_unknown_web_page_gives_friendly_404(admin_client):
     response = admin_client.get("/does-not-exist")
@@ -128,4 +117,4 @@ def test_unknown_web_page_gives_friendly_404(admin_client):
 def test_unknown_api_route_gives_json_404(admin_client):
     response = admin_client.get("/api/does-not-exist")
     assert response.status_code == 404
-    assert response.get_json() == {"error": "Page not found."}
+    assert response.get_json() == {"ok": False, "message": "Not found."}
