@@ -13,3 +13,13 @@ __pycache__/
 .pytest_cache/
 
 .claude/
+
+# Local demo tooling, recordings, and Playwright browser binaries
+/tools/record_demo.py
+/tools/build_demo.ps1
+demo_videos/
+*.webm
+*.mp4
+ms-playwright/
+.local-browsers/
+requirements-dev.txt
